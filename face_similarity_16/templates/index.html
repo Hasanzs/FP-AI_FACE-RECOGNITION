@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Similarity Test</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Uji Similaritas Wajah</h1>
+
+    <div class="controls">
+        <label for="model-select">Pilih Model:</label>
+        <select id="model-select">
+            {% for model in models %}
+            <option value="{{ model }}" {% if model == 'VGG-Face' %}selected{% endif %}>{{ model }}</option>
+            {% endfor %}
+        </select>
+        <p class="info">Beberapa model mungkin memerlukan waktu lebih lama atau dependensi spesifik.</p>
+    </div>
+
+    <div class="image-container">
+        <div class="image-section">
+            <h2>Gambar 1</h2>
+            <input type="file" id="image1-upload" accept="image/*">
+            <button id="camera1-btn">Ambil dari Kamera 1</button>
+            <img id="image1-preview" src="#" alt="Preview Gambar 1" style="display:none;">
+            <video id="video1" width="320" height="240" style="display:none;"></video>
+            <button id="capture1-btn" style="display:none;">Capture dari Kamera 1</button>
+        </div>
+        <div class="image-section">
+            <h2>Gambar 2</h2>
+            <input type="file" id="image2-upload" accept="image/*">
+            <button id="camera2-btn">Ambil dari Kamera 2</button>
+            <img id="image2-preview" src="#" alt="Preview Gambar 2" style="display:none;">
+            <video id="video2" width="320" height="240" style="display:none;"></video>
+            <button id="capture2-btn" style="display:none;">Capture dari Kamera 2</button>
+        </div>
+    </div>
+
+    <button id="predict-btn">Prediksi Similaritas</button>
+
+    <div id="result-area">
+        <h2>Hasil:</h2>
+        <p id="result-text">Menunggu prediksi...</p>
+        <div id="loader" style="display: none;">Memproses...</div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
