@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const video1El = document.getElementById('video1');
     const capture1Btn = document.getElementById('capture1-btn');
     let stream1 = null;
-    let image1File = null; // Untuk menyimpan file dari upload atau capture
+    let image1File = null;
 
     const image2Upload = document.getElementById('image2-upload');
     const image2Preview = document.getElementById('image2-preview');
@@ -13,19 +13,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const video2El = document.getElementById('video2');
     const capture2Btn = document.getElementById('capture2-btn');
     let stream2 = null;
-    let image2File = null; // Untuk menyimpan file dari upload atau capture
+    let image2File = null;
 
     const predictBtn = document.getElementById('predict-btn');
     const resultText = document.getElementById('result-text');
     const modelSelect = document.getElementById('model-select');
     const loader = document.getElementById('loader');
 
-    // Fungsi untuk menampilkan preview gambar dari file input
     function setupImageUpload(uploadElement, previewElement, fileVarSetter) {
         uploadElement.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file) {
-                fileVarSetter(file); // Simpan file object
+                fileVarSetter(file);
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     previewElement.src = e.target.result;
@@ -39,10 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setupImageUpload(image1Upload, image1Preview, (file) => image1File = file);
     setupImageUpload(image2Upload, image2Preview, (file) => image2File = file);
 
-    // Fungsi untuk setup kamera
     function setupCamera(cameraBtn, videoEl, captureBtn, previewEl, streamVar, fileVarSetter) {
         cameraBtn.addEventListener('click', async () => {
-            if (streamVar) { // Jika stream sudah ada, matikan
+            if (streamVar) {
                 streamVar.getTracks().forEach(track => track.stop());
                 videoEl.style.display = 'none';
                 captureBtn.style.display = 'none';
@@ -54,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 streamVar = await navigator.mediaDevices.getUserMedia({ video: true });
                 videoEl.srcObject = streamVar;
                 videoEl.style.display = 'block';
-                previewEl.style.display = 'none'; // Sembunyikan preview file jika kamera aktif
+                previewEl.style.display = 'none';
                 captureBtn.style.display = 'inline-block';
                 cameraBtn.textContent = `Tutup Kamera ${videoEl.id.slice(-1)}`;
             } catch (err) {
@@ -72,22 +70,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const context = canvas.getContext('2d');
                 context.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
 
-                previewEl.src = canvas.toDataURL('image/jpeg'); // Tampilkan di preview
+                previewEl.src = canvas.toDataURL('image/jpeg');
                 previewEl.style.display = 'block';
 
-                // Konversi canvas ke Blob lalu ke File object
                 canvas.toBlob((blob) => {
                     const capturedFile = new File([blob], `capture_${videoEl.id}.jpg`, { type: 'image/jpeg' });
-                    fileVarSetter(capturedFile); // Simpan file object
+                    fileVarSetter(capturedFile);
                 }, 'image/jpeg');
-
-
-                // Opsional: matikan kamera setelah capture
-                // streamVar.getTracks().forEach(track => track.stop());
-                // videoEl.style.display = 'none';
-                // captureBtn.style.display = 'none';
-                // cameraBtn.textContent = `Ambil dari Kamera ${videoEl.id.slice(-1)}`;
-                // streamVar = null;
             }
         });
     }
@@ -95,8 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setupCamera(camera1Btn, video1El, capture1Btn, image1Preview, stream1, (file) => image1File = file);
     setupCamera(camera2Btn, video2El, capture2Btn, image2Preview, stream2, (file) => image2File = file);
 
-
-    // Tombol Prediksi
     predictBtn.addEventListener('click', async () => {
         if (!image1File || !image2File) {
             resultText.textContent = 'Error: Silakan pilih atau ambil kedua gambar terlebih dahulu.';
@@ -107,8 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('image1', image1File);
         formData.append('image2', image2File);
         formData.append('model', modelSelect.value);
-        // Anda bisa menambahkan pilihan detector_backend di HTML dan mengirimnya juga
-        // formData.append('detector_backend', 'mtcnn');
 
         resultText.textContent = 'Memproses...';
         loader.style.display = 'block';
