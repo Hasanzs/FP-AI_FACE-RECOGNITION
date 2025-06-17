@@ -106,6 +106,8 @@ if __name__ == '__main__':
 
 
 # How to run!
+    # python3 -m pip install 'tensorflow[and-cuda]'
+    # python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
     # python3 -m venv venv
     # source venv/bin/activate
     # python3 app.py
