@@ -1,92 +1,116 @@
 document.addEventListener('DOMContentLoaded', () => {
     const image1Upload = document.getElementById('image1-upload');
     const image1Preview = document.getElementById('image1-preview');
+    const video1 = document.getElementById('video1');
     const camera1Btn = document.getElementById('camera1-btn');
-    const video1El = document.getElementById('video1');
     const capture1Btn = document.getElementById('capture1-btn');
-    let stream1 = null;
-    let image1File = null;
 
     const image2Upload = document.getElementById('image2-upload');
     const image2Preview = document.getElementById('image2-preview');
+    const video2 = document.getElementById('video2');
     const camera2Btn = document.getElementById('camera2-btn');
-    const video2El = document.getElementById('video2');
     const capture2Btn = document.getElementById('capture2-btn');
-    let stream2 = null;
-    let image2File = null;
 
+    const modelSelect = document.getElementById('model-select');
     const predictBtn = document.getElementById('predict-btn');
     const resultText = document.getElementById('result-text');
-    const modelSelect = document.getElementById('model-select');
     const loader = document.getElementById('loader');
 
-    function setupImageUpload(uploadElement, previewElement, fileVarSetter) {
-        uploadElement.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                fileVarSetter(file);
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    previewElement.src = e.target.result;
-                    previewElement.style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
-        });
+    let image1File, image2File;
+    let stream1, stream2;
+
+    // Function to handle image preview from file input
+    function previewImage(file, previewElement) {
+        if (file) {
+            previewElement.src = URL.createObjectURL(file);
+            previewElement.style.display = 'block';
+        } else {
+            previewElement.src = '#'; // Reset src
+            previewElement.style.display = 'none';
+        }
     }
 
-    setupImageUpload(image1Upload, image1Preview, (file) => image1File = file);
-    setupImageUpload(image2Upload, image2Preview, (file) => image2File = file);
+    image1Upload.addEventListener('change', (event) => {
+        image1File = event.target.files[0];
+        previewImage(image1File, image1Preview);
+        if (stream1) stopStream(stream1, video1, capture1Btn); // Stop camera if file is chosen
+        video1.style.display = 'none'; // Hide video element
+    });
 
-    function setupCamera(cameraBtn, videoEl, captureBtn, previewEl, streamVar, fileVarSetter) {
-        cameraBtn.addEventListener('click', async () => {
-            if (streamVar) {
-                streamVar.getTracks().forEach(track => track.stop());
-                videoEl.style.display = 'none';
-                captureBtn.style.display = 'none';
-                cameraBtn.textContent = `Ambil dari Kamera ${videoEl.id.slice(-1)}`;
-                streamVar = null;
-                return;
+    image2Upload.addEventListener('change', (event) => {
+        image2File = event.target.files[0];
+        previewImage(image2File, image2Preview);
+        if (stream2) stopStream(stream2, video2, capture2Btn); // Stop camera if file is chosen
+        video2.style.display = 'none'; // Hide video element
+    });
+
+    // Function to start camera stream
+    async function startCamera(videoElement, captureButton, streamVarSetter, imagePreviewElement, imageFileSetter) {
+        try {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                streamVarSetter(stream);
+                videoElement.srcObject = stream;
+                videoElement.style.display = 'block';
+                captureButton.style.display = 'inline-block'; // Show capture button
+                imagePreviewElement.style.display = 'none'; // Hide image preview
+                imageFileSetter(null); // Clear any selected file
+                if (imagePreviewElement.id === 'image1-preview') image1Upload.value = ''; // Clear file input
+                if (imagePreviewElement.id === 'image2-preview') image2Upload.value = ''; // Clear file input
+            } else {
+                alert('Camera not supported by this browser.');
             }
-            try {
-                streamVar = await navigator.mediaDevices.getUserMedia({ video: true });
-                videoEl.srcObject = streamVar;
-                videoEl.style.display = 'block';
-                previewEl.style.display = 'none';
-                captureBtn.style.display = 'inline-block';
-                cameraBtn.textContent = `Tutup Kamera ${videoEl.id.slice(-1)}`;
-            } catch (err) {
-                console.error("Error accessing camera: ", err);
-                resultText.textContent = `Error: Tidak bisa mengakses kamera. ${err.message}`;
-                alert("Tidak bisa mengakses kamera. Pastikan Anda memberikan izin.");
-            }
-        });
-
-        captureBtn.addEventListener('click', () => {
-            if (streamVar) {
-                const canvas = document.createElement('canvas');
-                canvas.width = videoEl.videoWidth;
-                canvas.height = videoEl.videoHeight;
-                const context = canvas.getContext('2d');
-                context.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-
-                previewEl.src = canvas.toDataURL('image/jpeg');
-                previewEl.style.display = 'block';
-
-                canvas.toBlob((blob) => {
-                    const capturedFile = new File([blob], `capture_${videoEl.id}.jpg`, { type: 'image/jpeg' });
-                    fileVarSetter(capturedFile);
-                }, 'image/jpeg');
-            }
-        });
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            alert('Error accessing camera. Please ensure permissions are granted.');
+        }
     }
 
-    setupCamera(camera1Btn, video1El, capture1Btn, image1Preview, stream1, (file) => image1File = file);
-    setupCamera(camera2Btn, video2El, capture2Btn, image2Preview, stream2, (file) => image2File = file);
+    // Function to stop camera stream
+    function stopStream(stream, videoElement, captureButton) {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+        videoElement.srcObject = null;
+        videoElement.style.display = 'none';
+        captureButton.style.display = 'none';
+    }
 
+    // Function to capture image from video stream
+    function captureImage(videoElement, previewElement, imageFileSetter, streamVar, captureButton) {
+        const canvas = document.createElement('canvas');
+        canvas.width = videoElement.videoWidth;
+        canvas.height = videoElement.videoHeight;
+        const context = canvas.getContext('2d');
+        context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        
+        canvas.toBlob(blob => {
+            const file = new File([blob], `capture_${Date.now()}.jpg`, { type: 'image/jpeg' });
+            imageFileSetter(file);
+            previewImage(file, previewElement);
+            stopStream(streamVar, videoElement, captureButton);
+        }, 'image/jpeg');
+    }
+
+    camera1Btn.addEventListener('click', () => {
+        startCamera(video1, capture1Btn, (s) => stream1 = s, image1Preview, (f) => image1File = f);
+    });
+    capture1Btn.addEventListener('click', () => {
+        captureImage(video1, image1Preview, (f) => image1File = f, stream1, capture1Btn);
+    });
+
+    camera2Btn.addEventListener('click', () => {
+        startCamera(video2, capture2Btn, (s) => stream2 = s, image2Preview, (f) => image2File = f);
+    });
+    capture2Btn.addEventListener('click', () => {
+        captureImage(video2, image2Preview, (f) => image2File = f, stream2, capture2Btn);
+    });
+
+
+    // Prediction logic
     predictBtn.addEventListener('click', async () => {
         if (!image1File || !image2File) {
-            resultText.textContent = 'Error: Silakan pilih atau ambil kedua gambar terlebih dahulu.';
+            alert('Please upload or capture both images first.');
             return;
         }
 
@@ -94,41 +118,44 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('image1', image1File);
         formData.append('image2', image2File);
         formData.append('model', modelSelect.value);
+        // formData.append('detector_backend', document.getElementById('detector-select').value); // Uncomment if detector_backend is used
 
-        resultText.textContent = 'Memproses...';
         loader.style.display = 'block';
-        predictBtn.disabled = true;
+        resultText.textContent = 'Processing...'; // This will be in English, if you want Indonesian: "Memproses..."
 
         try {
             const response = await fetch('/predict', {
                 method: 'POST',
-                body: formData
+                body: formData,
             });
 
+            loader.style.display = 'none';
             const data = await response.json();
 
             if (response.ok) {
-                let output = `Model: ${data.model}<br>`;
-                output += `Terverifikasi: ${data.verified ? 'YA' : 'TIDAK'}<br>`;
-                output += `Jarak: ${data.distance.toFixed(4)} (Threshold: ${data.threshold.toFixed(4)})<br>`;
-                output += `Persentase Similaritas (estimasi): ${data.similarity_percent.toFixed(2)}%<br>`;
-                if (data.time) output += `Waktu Proses: ${data.time.toFixed(2)} detik<br>`;
-                if (data.facial_areas && data.facial_areas.img1) {
-                    output += `Area Wajah Gbr 1: x=${data.facial_areas.img1.x}, y=${data.facial_areas.img1.y}, w=${data.facial_areas.img1.w}, h=${data.facial_areas.img1.h}<br>`;
+                const distance = data.distance;
+                const threshold = data.threshold; // Ensure your backend sends this value
+                let similarityText = 'N/A (Threshold tidak tersedia)'; // "N/A (Threshold not available)"
+
+                if (typeof threshold === 'number' && threshold > 0) {
+                    // Calculate similarity: 100% if distance is 0, 50% if distance is threshold, 0% if distance is 2*threshold or more.
+                    let percentage = Math.max(0, 100 * (1 - distance / (threshold * 2)));
+                    similarityText = `${percentage.toFixed(2)}%`;
+                } else {
+                    console.warn("Threshold is not available from the backend or is invalid. Cannot calculate similarity percentage.");
                 }
-                 if (data.facial_areas && data.facial_areas.img2) {
-                    output += `Area Wajah Gbr 2: x=${data.facial_areas.img2.x}, y=${data.facial_areas.img2.y}, w=${data.facial_areas.img2.w}, h=${data.facial_areas.img2.h}<br>`;
-                }
-                resultText.innerHTML = output;
+
+                resultText.innerHTML = `Hasil Verifikasi: ${data.verified ? 'Terverifikasi' : 'Tidak Terverifikasi'}<br>
+                                        Persentase Kemiripan: ${similarityText}<br>
+                                        Jarak: ${distance.toFixed(4)}<br>
+                                        Model: ${data.model}`;
             } else {
-                resultText.textContent = `Error: ${data.error || 'Gagal melakukan prediksi.'}`;
+                resultText.textContent = `Error: ${data.error || 'An error occurred during prediction.'}`; // Or in Indonesian: "Terjadi kesalahan saat prediksi."
             }
         } catch (error) {
-            console.error('Error during prediction:', error);
-            resultText.textContent = `Error: Terjadi masalah koneksi atau server. ${error.message}`;
-        } finally {
             loader.style.display = 'none';
-            predictBtn.disabled = false;
+            resultText.textContent = `Error: ${error.message}`;
+            console.error('Error during prediction:', error);
         }
     });
 });
