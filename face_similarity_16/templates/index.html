@@ -4,47 +4,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Face Similarity Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Uji Similaritas Wajah</h1>
+    <header>
+        <h1>FaceMatch.AI By 16</h1>
+    </header>
 
-    <div class="controls">
-        <label for="model-select">Pilih Model:</label>
-        <select id="model-select">
-            {% for model in models %}
-            <option value="{{ model }}" {% if model == 'VGG-Face' %}selected{% endif %}>{{ model }}</option>
-            {% endfor %}
-        </select>
-        <p class="info">Beberapa model mungkin memerlukan waktu lebih lama atau dependensi spesifik.</p>
-    </div>
+    <main>
+        <section class="interactive-area">
+            <div class="controls-container">
+                <h2>Configuration</h2>
+                <div class="control-group">
+                    <label for="model-select">Select Model:</label>
+                    <select id="model-select">
+                        {% for model in models %}
+                        <option value="{{ model }}" {% if model == 'VGG-Face' %}selected{% endif %}>{{ model }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <p class="info-text">Some models may take longer or have specific dependencies.</p>
+            </div>
 
-    <div class="image-container">
-        <div class="image-section">
-            <h2>Gambar 1</h2>
-            <input type="file" id="image1-upload" accept="image/*">
-            <button id="camera1-btn">Ambil dari Kamera 1</button>
-            <img id="image1-preview" src="#" alt="Preview Gambar 1" style="display:none;">
-            <video id="video1" width="320" height="240" style="display:none;"></video>
-            <button id="capture1-btn" style="display:none;">Capture dari Kamera 1</button>
-        </div>
-        <div class="image-section">
-            <h2>Gambar 2</h2>
-            <input type="file" id="image2-upload" accept="image/*">
-            <button id="camera2-btn">Ambil dari Kamera 2</button>
-            <img id="image2-preview" src="#" alt="Preview Gambar 2" style="display:none;">
-            <video id="video2" width="320" height="240" style="display:none;"></video>
-            <button id="capture2-btn" style="display:none;">Capture dari Kamera 2</button>
-        </div>
-    </div>
+            <div class="images-container">
+                <h2>Upload Images</h2>
+                <div class="image-upload-area">
+                    <div class="image-section" id="image-section-1">
+                        <h3>Image 1</h3>
+                        <img id="image1-preview" src="#" alt="Image 1 Preview" style="display:none;" class="image-preview">
+                        <video id="video1" style="display:none;" class="video-preview"></video>
+                        <div class="upload-buttons">
+                            <label for="image1-upload" class="button-upload-label">Choose File</label>
+                            <input type="file" id="image1-upload" accept="image/*" class="file-input" style="display:none;">
+                            <button id="camera1-btn" class="button-camera">Use Camera</button>
+                        </div>
+                        <button id="capture1-btn" style="display:none;" class="button-capture">Capture</button>
+                    </div>
+                    <div class="image-section" id="image-section-2">
+                        <h3>Image 2</h3>
+                        <img id="image2-preview" src="#" alt="Image 2 Preview" style="display:none;" class="image-preview">
+                        <video id="video2" style="display:none;" class="video-preview"></video>
+                        <div class="upload-buttons">
+                            <label for="image2-upload" class="button-upload-label">Choose File</label>
+                            <input type="file" id="image2-upload" accept="image/*" class="file-input" style="display:none;">
+                            <button id="camera2-btn" class="button-camera">Use Camera</button>
+                        </div>
+                        <button id="capture2-btn" style="display:none;" class="button-capture">Capture</button>
+                    </div>
+                </div>
+            </div>
 
-    <button id="predict-btn">Prediksi Similaritas</button>
+            <div class="action-container">
+                <button id="predict-btn" class="button-predict">Check Similarity</button>
+            </div>
+        </section>
 
-    <div id="result-area">
-        <h2>Hasil:</h2>
-        <p id="result-text">Menunggu prediksi...</p>
-        <div id="loader" style="display: none;">Memproses...</div>
-    </div>
+        <section id="result-area" class="result-section">
+            <h2>Result:</h2>
+            <p id="result-text">Awaiting prediction...</p>
+            <div id="loader" class="loader-animation" style="display: none;">Processing...</div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Face Similarity App</p>
+    </footer>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
