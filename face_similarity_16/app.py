@@ -61,6 +61,7 @@ def predict():
         file2.save(img2_path)
 
         logging.info(f"Memverifikasi menggunakan model: {model_name}, detector: {detector_backend}")
+    
         result = DeepFace.verify(
             img1_path=img1_path,
             img2_path=img2_path,
@@ -72,14 +73,14 @@ def predict():
 
         os.remove(img1_path)
         os.remove(img2_path)
-        
+
         response_data = {
             'verified': result.get('verified', False),
             'distance': result.get('distance', -1.0),
             'threshold': result.get('threshold', -1.0),
             'model': result.get('model', model_name),
             'similarity_percent': (1 - result.get('distance', 1.0)) * 100 if result.get('distance', 1.0) >=0 else 0,
-            'facial_areas': {
+            'facial_areas': { 
                 'img1': result.get('facial_areas', {}).get('img1'),
                 'img2': result.get('facial_areas', {}).get('img2')
             },
@@ -87,16 +88,24 @@ def predict():
         }
         return jsonify(response_data)
 
-    except ValueError as ve:
+    except ValueError as ve: 
         logging.error(f"ValueError: {ve}")
+    
         if os.path.exists(img1_path): os.remove(img1_path)
         if os.path.exists(img2_path): os.remove(img2_path)
         return jsonify({'error': str(ve)}), 400
     except Exception as e:
         logging.error(f"Exception: {e}")
+    
         if os.path.exists(img1_path): os.remove(img1_path)
         if os.path.exists(img2_path): os.remove(img2_path)
         return jsonify({'error': f'Terjadi kesalahan internal: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True) 
+
+
+# How to run!
+    # python3 -m venv venv
+    # source venv/bin/activate
+    # python3 app.py
